@@ -8,10 +8,10 @@ class KNearestNeighbours:
         self.target = target
         self.test_point = test_point
         self.k = k
-        self.distances = list()
+        self.distances = []
         self.categories = list()
-        self.indices = list()
-        self.counts = list()
+        self.indices = []
+        self.counts = []
         self.category_assigned = None
 
     @staticmethod
@@ -22,7 +22,13 @@ class KNearestNeighbours:
     def fit(self):
         """Method that performs the KNN classification"""
         # Create a list of (distance, index) tuples from the test point to each point in the data
-        self.distances.extend([(self.dist(self.test_point, point), i) for point, i in zip(self.data, [i for i in range(len(self.data))])])
+        self.distances.extend(
+            [
+                (self.dist(self.test_point, point), i)
+                for point, i in zip(self.data, list(range(len(self.data))))
+            ]
+        )
+
         # Sort the distances in ascending order
         sorted_li = sorted(self.distances, key=itemgetter(0))
         # Fetch the indices of the k nearest point from the data
