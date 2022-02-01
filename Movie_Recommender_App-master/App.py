@@ -43,16 +43,17 @@ def get_movie_info(imdb_link):
 
 def KNN_Movie_Recommender(test_point, k):
     # Create dummy target variable for the KNN Classifier
-    target = [0 for item in movie_titles]
+    target = [0 for _ in movie_titles]
     # Instantiate object for the Classifier
     model = KNearestNeighbours(data, target, test_point, k=k)
     # Run the algorithm
     model.fit()
     # Print list of 10 recommendations < Change value of k for a different number >
-    table = []
-    for i in model.indices:
-        # Returns back movie title and imdb link
-        table.append([movie_titles[i][0], movie_titles[i][2],data[i][-1]])
+    table = [
+        [movie_titles[i][0], movie_titles[i][2], data[i][-1]]
+        for i in model.indices
+    ]
+
     print(table)
     return table
 
@@ -80,47 +81,44 @@ def run():
         dec = st.radio("Want to Fetch Movie Poster?", ('Yes', 'No'))
         st.markdown('''<h4 style='text-align: left; color: #d73b5c;'>* Fetching a Movie Posters will take a time."</h4>''',
                     unsafe_allow_html=True)
-        if dec == 'No':
-            if select_movie == '--Select--':
-                st.warning('Please select Movie!!')
-            else:
-                no_of_reco = st.slider('Number of movies you want Recommended:', min_value=5, max_value=20, step=1)
-                genres = data[movies.index(select_movie)]
-                test_points = genres
-                table = KNN_Movie_Recommender(test_points, no_of_reco+1)
-                table.pop(0)
-                c = 0
-                st.success('Some of the movies from our Recommendation, have a look below')
-                for movie, link, ratings in table:
-                    c+=1
-                    director,cast,story,total_rat = get_movie_info(link)
-                    st.markdown(f"({c})[ {movie}]({link})")
-                    st.markdown(director)
-                    st.markdown(cast)
-                    st.markdown(story)
-                    st.markdown(total_rat)
-                    st.markdown('IMDB Rating: ' + str(ratings) + '⭐')
+        if (
+            dec == 'No'
+            and select_movie == '--Select--'
+            or dec != 'No'
+            and select_movie == '--Select--'
+        ):
+            st.warning('Please select Movie!!')
+        elif dec == 'No':
+            no_of_reco = st.slider('Number of movies you want Recommended:', min_value=5, max_value=20, step=1)
+            genres = data[movies.index(select_movie)]
+            test_points = genres
+            table = KNN_Movie_Recommender(test_points, no_of_reco+1)
+            table.pop(0)
+            st.success('Some of the movies from our Recommendation, have a look below')
+            for c, (movie, link, ratings) in enumerate(table, start=1):
+                director,cast,story,total_rat = get_movie_info(link)
+                st.markdown(f"({c})[ {movie}]({link})")
+                st.markdown(director)
+                st.markdown(cast)
+                st.markdown(story)
+                st.markdown(total_rat)
+                st.markdown('IMDB Rating: ' + str(ratings) + '⭐')
         else:
-            if select_movie == '--Select--':
-                st.warning('Please select Movie!!')
-            else:
-                no_of_reco = st.slider('Number of movies you want Recommended:', min_value=5, max_value=20, step=1)
-                genres = data[movies.index(select_movie)]
-                test_points = genres
-                table = KNN_Movie_Recommender(test_points, no_of_reco+1)
-                table.pop(0)
-                c = 0
-                st.success('Some of the movies from our Recommendation, have a look below')
-                for movie, link, ratings in table:
-                    c += 1
-                    st.markdown(f"({c})[ {movie}]({link})")
-                    movie_poster_fetcher(link)
-                    director,cast,story,total_rat = get_movie_info(link)
-                    st.markdown(director)
-                    st.markdown(cast)
-                    st.markdown(story)
-                    st.markdown(total_rat)
-                    st.markdown('IMDB Rating: ' + str(ratings) + '⭐')
+            no_of_reco = st.slider('Number of movies you want Recommended:', min_value=5, max_value=20, step=1)
+            genres = data[movies.index(select_movie)]
+            test_points = genres
+            table = KNN_Movie_Recommender(test_points, no_of_reco+1)
+            table.pop(0)
+            st.success('Some of the movies from our Recommendation, have a look below')
+            for c, (movie, link, ratings) in enumerate(table, start=1):
+                st.markdown(f"({c})[ {movie}]({link})")
+                movie_poster_fetcher(link)
+                director,cast,story,total_rat = get_movie_info(link)
+                st.markdown(director)
+                st.markdown(cast)
+                st.markdown(story)
+                st.markdown(total_rat)
+                st.markdown('IMDB Rating: ' + str(ratings) + '⭐')
     elif cat_op == category[2]:
         sel_gen = st.multiselect('Select Genres:', genres)
         dec = st.radio("Want to Fetch Movie Poster?", ('Yes', 'No'))
@@ -133,10 +131,8 @@ def run():
                 test_point = [1 if genre in sel_gen else 0 for genre in genres]
                 test_point.append(imdb_score)
                 table = KNN_Movie_Recommender(test_point, no_of_reco)
-                c = 0
                 st.success('Some of the movies from our Recommendation, have a look below')
-                for movie, link, ratings in table:
-                    c += 1
+                for c, (movie, link, ratings) in enumerate(table, start=1):
                     st.markdown(f"({c})[ {movie}]({link})")
                     director,cast,story,total_rat = get_movie_info(link)
                     st.markdown(director)
@@ -144,23 +140,20 @@ def run():
                     st.markdown(story)
                     st.markdown(total_rat)
                     st.markdown('IMDB Rating: ' + str(ratings) + '⭐')
-        else:
-            if sel_gen:
-                imdb_score = st.slider('Choose IMDb score:', 1, 10, 8)
-                no_of_reco = st.number_input('Number of movies:', min_value=5, max_value=20, step=1)
-                test_point = [1 if genre in sel_gen else 0 for genre in genres]
-                test_point.append(imdb_score)
-                table = KNN_Movie_Recommender(test_point, no_of_reco)
-                c = 0
-                st.success('Some of the movies from our Recommendation, have a look below')
-                for movie, link, ratings in table:
-                    c += 1
-                    st.markdown(f"({c})[ {movie}]({link})")
-                    movie_poster_fetcher(link)
-                    director,cast,story,total_rat = get_movie_info(link)
-                    st.markdown(director)
-                    st.markdown(cast)
-                    st.markdown(story)
-                    st.markdown(total_rat)
-                    st.markdown('IMDB Rating: ' + str(ratings) + '⭐')
+        elif sel_gen:
+            imdb_score = st.slider('Choose IMDb score:', 1, 10, 8)
+            no_of_reco = st.number_input('Number of movies:', min_value=5, max_value=20, step=1)
+            test_point = [1 if genre in sel_gen else 0 for genre in genres]
+            test_point.append(imdb_score)
+            table = KNN_Movie_Recommender(test_point, no_of_reco)
+            st.success('Some of the movies from our Recommendation, have a look below')
+            for c, (movie, link, ratings) in enumerate(table, start=1):
+                st.markdown(f"({c})[ {movie}]({link})")
+                movie_poster_fetcher(link)
+                director,cast,story,total_rat = get_movie_info(link)
+                st.markdown(director)
+                st.markdown(cast)
+                st.markdown(story)
+                st.markdown(total_rat)
+                st.markdown('IMDB Rating: ' + str(ratings) + '⭐')
 run()
